@@ -4,18 +4,12 @@ import dash_core_components as dcc
 from dash.dependencies import Input, Output
 import altair as alt
 import pandas as pd
-#from vega_datasets import data
 alt.data_transformers.disable_max_rows()
 
 
 # Read in data
-#wine_1 = pd.read_csv("C:/Users/lihua/MDS/4_532_data_visualization-2/DSCI_532_Group15_wine/data/winemag-data_first150k.csv",index_col=0)
-#wine_2 = pd.read_csv("C:/Users/lihua/MDS/4_532_data_visualization-2/DSCI_532_Group15_wine/data/winemag-data-130k-v2.csv",index_col=0)
-wine_1 = pd.read_csv("./data/winemag-data_first150k.csv",index_col=0)
-wine_2 = pd.read_csv("./data/winemag-data-130k-v2.csv",index_col=0)
-wine_2 = wine_2.drop(columns=['taster_name', 'taster_twitter_handle','title'], axis=1)
-
-wine_df = pd.concat([wine_1,wine_2], ignore_index = True)
+#wine_df = pd.read_csv("C:/Users/lihua/MDS/4_532_data_visualization-2/DSCI_532_Group15_wine/data/winemag-data-130k-v2.csv",index_col=0)
+wine_df = pd.read_csv("./data/winemag-data-130k-v2.csv",index_col=0)
 #print(wine_df)
 countries = wine_df.country.dropna().unique()
 country_list = list(countries)
@@ -49,7 +43,7 @@ def plot_altair(country=None):
     chart = alt.Chart(wine_country, title="Wine Price vs Points").mark_point().encode(
         alt.X('points', scale=alt.Scale(domain=(75, 105))),
         alt.Y('price'),
-        tooltip=['points', 'price','variety']).interactive()
+        tooltip=['title','points', 'price','variety']).interactive()
     return chart.to_html()
 
 if __name__ == '__main__':
