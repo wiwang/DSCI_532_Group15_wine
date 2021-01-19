@@ -17,7 +17,36 @@ country_list = list(countries)
 
 
 # Setup app and layout/frontend
-app = dash.Dash(__name__,  external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app.layout = dbc.Container([
+    html.H1('My mudplank'),
+    dbc.Row([
+        dbc.Col([
+            dcc.Dropdown(
+                id='xcol-widget',
+                value='Horsepower',  # REQUIRED to show the plot on the first page load
+                options=[{'label': col, 'value': col} for col in cars.columns]),
+            dcc.Dropdown(
+                id='ycol-widget',
+                value='Displacement',  # REQUIRED to show the plot on the first page load
+                options=[{'label': col, 'value': col} for col in cars.columns])],
+            md=4),
+        dbc.Col([
+            dbc.Row([
+                dbc.Col(
+                    dbc.Card(
+                        dbc.CardBody(html.H5('Key value')),
+                        color='warning')),
+                dbc.Col(
+                    dbc.Card(
+                        dbc.CardBody(html.H5('Key value')),
+                        color='info', inverse=True, style={'text-align': 'center'}))]),
+            html.Iframe(
+                id='scatter',
+                style={'border-width': '0', 'width': '100vw', 'height': '100vh'})])])])
+
+# Setup app and layout/frontend
+# app = dash.Dash(__name__,  external_stylesheets=['https://codepen.io/chriddyp/pen/bWLwgP.css'])
 app.layout = html.Div([
         html.Iframe(
             id='scatter',
