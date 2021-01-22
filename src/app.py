@@ -11,11 +11,11 @@ alt.data_transformers.disable_max_rows()
 
 # Read in data
 wine_df = pd.read_csv("../data/processed/wine.csv")
-#wine_df = wine_df.sample(n=1000)
+wine_df = wine_df.sample(n=10000)
 countries = wine_df["country"].dropna().unique()
 country_list = list(countries)
 
-country_ids = pd.read_csv('../data/geo/country-ids.csv') 
+country_ids = pd.read_csv('../data/geo/country-ids-revised.csv') 
 
 def plot_altair(xrange, country=None): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
     wine_country = pd.DataFrame()
@@ -49,16 +49,20 @@ def plot_altair(xrange, country=None): # xrange is a list that stores min (xrang
 def plot_map(country=None):
     
     wine_countryid = wine_df.merge(country_ids, left_on='country',right_on='name', how='left')
-    wine_countryid = wine_countryid.value_counts(['id']).reset_index(name='wine_count')
+    wine_countryid = wine_countryid.value_counts(['id','country']).reset_index(name='count')
     
     alt.renderers.enable('default')
     world = data.world_110m()
     world_map = alt.topo_feature(data.world_110m.url, 'countries')
 
+    map_click = alt.selection_multi()
     chart = (alt.Chart(world_map, title='Wine Producing Map').mark_geoshape().transform_lookup(
             lookup = 'id',
-            from_ = alt.LookupData(wine_countryid, 'id', ['wine_count']))
-            .encode(color = 'wine_count:Q')
+            from_ = alt.LookupData(wine_countryid, 'id', ['country','count']))
+            .encode(color = 'count:Q',
+                    opacity=alt.condition(map_click, alt.value(1), alt.value(0.2)),
+                    tooltip = ['country:N','count:Q'])
+            .add_selection(map_click)
             .project('equalEarth', scale=90))
     return chart.to_html()
 
