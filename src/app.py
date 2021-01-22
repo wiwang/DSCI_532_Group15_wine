@@ -111,23 +111,36 @@ app.layout = dbc.Container([
         dbc.Col([
             'Country',
             dcc.Dropdown(
-                id='country-widget',
+                id='country_widget',
                 options=[{'label': country, 'value': country} for country in country_list],
-                value='US'),
-            'Variety',
-            dcc.Dropdown(
-                options=[{'label': i, 'value': i} for i in wine_df["variety"].dropna().unique()],
-                value='SF', multi=True),
-            'Wine Enthusiast Score',
+                value='US',
+                multi=True
+            ),
+        # 'Variety',
+        #     dcc.Dropdown(
+        #         id='variety_widget',
+        #         options=[{'label': i, 'value': i} for i in wine_df["variety"].dropna().unique()],
+        #         value='SF',
+        #         multi=True
+        #     ),
+        'Price',
             dcc.RangeSlider(
-                min=80, max=100, value=[80, 100], marks={80: '80', 85: '85', 90: '90', 95: '95', 100: '100'}),
-            'Price',
+                id = "price_slider",
+                min=4, max=3300, value=[4, 3300],
+                marks=slider_range_price_dic
+            ),
+        'Wine Enthusiast Score',
             dcc.RangeSlider(
-                id = "xslider", min=4, max=3300, value=[4, 3300], marks=slider_range_price_dic),
-            'Year',
+                id = 'score_slider',
+                min=80, max=100, value=[80, 100],
+                marks={80: '80', 85: '85', 90: '90', 95: '95', 100: '100'}
+            ),
+        'Year',
             dcc.RangeSlider(
+                id = 'year_slider',
                 min=1990, max=2017, value=[1990, 2017],
-                marks={1990: '1990',1995: '1995', 2000: '2000', 2005: '2005', 2010: '2010', 2015: '2015', 2017: '2017'}),
+                marks={1990: '1990',1995: '1995', 2000: '2000', 2005: '2005', 2010: '2010', 2015: '2015', 2017: '2017'}
+            ),
         ], md=4),
         #add search results
         dbc.Col([
