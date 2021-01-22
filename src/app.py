@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import altair as alt
 import pandas as pd
+import numpy as np
 from vega_datasets import data
 alt.data_transformers.disable_max_rows()
 
@@ -66,6 +67,19 @@ def plot_map(country=None):
             .project('equalEarth', scale=90))
     return chart.to_html()
 
+
+#### GENERATING LIST FOR SLIDER TICKS ####
+slider_range_price = np.arange(500, 3400, 600).tolist()
+slider_range_5 = [5]
+slider_range_price = slider_range_5 + slider_range_price
+slider_range_price2 = []
+for digit in slider_range_price:
+    slider_range_price2.append(str(digit))
+slider_range_price_dic = {} 
+slider_range_price_dic = {slider_range_price[i]: slider_range_price2[i] for i in range(len(slider_range_price))}
+#### END ####
+
+
 # Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = dbc.Container([
@@ -75,10 +89,25 @@ app.layout = dbc.Container([
     dbc.Row([
         #add search criteria
         dbc.Col([
+            'Country',
             dcc.Dropdown(
                 id='country-widget',
                 options=[{'label': country, 'value': country} for country in country_list],
-                value='US')
+                value='US'),
+            'Variety',
+            dcc.Dropdown(
+                options=[{'label': i, 'value': i} for i in wine_df["variety"].dropna().unique()],
+                value='SF', multi=True),
+            'Wine Enthusiast Score',
+            dcc.RangeSlider(
+                min=80, max=100, value=[80, 100], marks={80: '80', 85: '85', 90: '90', 95: '95', 100: '100'}),
+            'Price',
+            dcc.RangeSlider(
+                id = "xslider", min=4, max=3300, value=[4, 3300], marks=slider_range_price_dic),
+            'Year',
+            dcc.RangeSlider(
+                min=1990, max=2017, value=[1990, 2017],
+                marks={1990: '1990',1995: '1995', 2000: '2000', 2005: '2005', 2010: '2010', 2015: '2015', 2017: '2017'}),
         ], md=4),
         #add search results
         dbc.Col([
