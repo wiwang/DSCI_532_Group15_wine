@@ -5,14 +5,17 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import altair as alt
 import pandas as pd
+from vega_datasets import data
 alt.data_transformers.disable_max_rows()
 
 
 # Read in data
-wine_df = pd.read_csv("./data/processed/wine.csv")
+wine_df = pd.read_csv("../data/processed/wine.csv")
 #wine_df = wine_df.sample(n=1000)
 countries = wine_df["country"].dropna().unique()
 country_list = list(countries)
+
+country_ids = pd.read_csv('../data/geo/country-ids.csv') 
 
 def plot_altair(xrange, country=None): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
     wine_country = pd.DataFrame()
@@ -41,6 +44,22 @@ def plot_altair(xrange, country=None): # xrange is a list that stores min (xrang
 
     chart = chart_1 & (chart_2 | chart_3)
     
+    return chart.to_html()
+
+def plot_map(country=None):
+    
+    wine_countryid = wine_df.merge(country_ids, left_on='country',right_on='name', how='left')
+    wine_countryid = wine_countryid.value_counts(['id']).reset_index(name='wine_count')
+    
+    alt.renderers.enable('default')
+    world = data.world_110m()
+    world_map = alt.topo_feature(data.world_110m.url, 'countries')
+
+    chart = (alt.Chart(world_map, title='Wine Producing Map').mark_geoshape().transform_lookup(
+            lookup = 'id',
+            from_ = alt.LookupData(wine_countryid, 'id', ['wine_count']))
+            .encode(color = 'wine_count:Q')
+            .project('equalEarth', scale=90))
     return chart.to_html()
 
 # Setup app and layout/frontend
@@ -74,11 +93,9 @@ app.layout = dbc.Container([
         #add geometry map
         dbc.Col([
             html.Iframe(
-                id='map-result',
-                srcDoc=alt.Chart(wine_df).mark_bar().encode(
-                    x = 'country',
-                    y = 'price'
-                ).to_html()
+                id ='map',
+                srcDoc=plot_map(),
+                style={'border-width': '0', 'width': '100%', 'height': '400px'}
             )
         ], md=4),
         #add statistic results
