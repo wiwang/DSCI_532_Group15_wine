@@ -11,12 +11,15 @@ alt.data_transformers.disable_max_rows()
 
 
 # Read in data
+
 wine_df = pd.read_csv("data/processed/wine.csv")
+
 wine_df = wine_df.sample(n=10000)
 countries = wine_df["country"].dropna().unique()
 country_list = list(countries)
 
 country_ids = pd.read_csv('data/geo/country-ids-revised.csv') 
+
 
 def plot_scatter(xrange, country=None):
     wine_country = pd.DataFrame()
