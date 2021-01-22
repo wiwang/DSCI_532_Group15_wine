@@ -48,7 +48,7 @@ app.layout = dbc.Container([
             dcc.Dropdown(
                 id='country_widget',
                 options=[{'label': country, 'value': country} for country in country_list],
-                value='US',
+                value=['US'],
                 multi=True
             ),
         # 'Variety',
@@ -81,7 +81,6 @@ app.layout = dbc.Container([
         dbc.Col([
             html.Iframe(
                 id = 'scatter',
-                #srcDoc=plot_scatter(xrange=[4, 3300]),
                 style={'border-width': '0', 'width': '100%', 'height': '400px'})
         ])
     ]),
@@ -100,7 +99,6 @@ app.layout = dbc.Container([
         dbc.Col([
             html.Iframe(
                 id = 'plot_altair',
-                #srcDoc=plot_altair(xrange=[4, 3300]),
                 style={'border-width': '0', 'width': '100%', 'height': '400px'}),           
         ], md=8)
     ])
@@ -140,25 +138,22 @@ def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [
 
 @app.callback(
     Output('plot_altair', 'srcDoc'),
-    #Input('country_widget', 'value'),
+    [Input('country_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_scatter(price_range = [80, 90], year_range = [1900, 2017], points_range = [80, 90]):
+def plot_scatter(country = None, price_range = [80, 90], year_range = [1900, 2017], points_range = [80, 90]):
     
-    #wine_country = pd.DataFrame()
-    #if country:
-    #    wine_country = wine_df[wine_df['country'] == country]
-    #else:
-    #   wine_country = wine_df
-
-    #wine = wine_country
     wine = wine_df
 
     # filter by price and year
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
                 (wine['year'] >= year_range[0]) & (wine_df['price'] <= year_range[1]) ]
     
+    if country:
+        wine = wine[wine['country'].isin(country)]
+    else:
+        wine = wine
 
     chart_1 = alt.Chart(wine, title='Rating by Price').mark_point().encode(
         x=alt.X('price', title="Price", scale=alt.Scale(zero=False)),
@@ -172,38 +167,34 @@ def plot_scatter(price_range = [80, 90], year_range = [1900, 2017], points_range
 
 @app.callback(
     Output('scatter', 'srcDoc'),
-    #Input('country_widget', 'value'),
+    [Input('country_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_altair(price_range = [80, 90], year_range = [1900, 2017], points_range = [80, 90]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
-    wine = wine_df
-    #wine_country = pd.DataFrame()
-    #if country:
-    #    wine_country = wine_df[wine_df['country'] == country]
-    #else:
-    #   wine_country = wine_df
-
-    #wine = wine_country
-
-    wine = wine_df
+def plot_altair(country = None, price_range = [80, 90], year_range = [1900, 2017], points_range = [80, 90]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
     
+    wine = wine_df
+ 
     # filter by price and year
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
                 (wine['year'] >= year_range[0]) & (wine_df['price'] <= year_range[1]) ]
+
+    if country:
+        wine = wine[wine['country'].isin(country)]
+    else:
+        wine = wine
 
     chart_2 = alt.Chart(wine.nlargest(15, 'points'), title="Average Rating of Top 15 Best Rated Wine").mark_bar().encode(
         x=alt.X('mean(points)', title="Rating Score"),
         y=alt.Y('variety', title="Variety", scale=alt.Scale(zero=False), sort='-x'),
         color='country:N',
-        #column=alt.Column('country:N'), 
-        tooltip=['mean(points)']).interactive()
+        tooltip=['mean(points)', 'mean(price)', 'country']).interactive()
     
     chart_3 = alt.Chart(wine.nlargest(15, 'points'), title="Average Price of Top 15 Best Rated Wine").mark_bar().encode(
         x=alt.X('mean(price)', title="Price", sort='-y', stack=None),
         y=alt.Y('variety', title=" ", scale=alt.Scale(zero=False), sort='-x'),
         color='country:N', 
-        tooltip=['mean(price)'])
+        tooltip=['mean(points)', 'mean(price)', 'country']).interactive()
 
     chart = (chart_2 | chart_3)
     
