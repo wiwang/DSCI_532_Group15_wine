@@ -24,7 +24,7 @@ country_ids = pd.read_csv('data/geo/country-ids-revised.csv')
 
 
 #### GENERATING LIST FOR SLIDER TICKS ####
-slider_range_price = np.arange(500, 3400, 600).tolist()
+slider_range_price = np.arange(250, 1501, 250).tolist()
 slider_range_5 = [5]
 slider_range_price = slider_range_5 + slider_range_price
 slider_range_price2 = []
@@ -61,7 +61,7 @@ app.layout = dbc.Container([
         'Price',
             dcc.RangeSlider(
                 id = "price_slider",
-                min=4, max=3300, value=[4, 3300],
+                min=4, max=1500, value=[4, 1500],
                 marks=slider_range_price_dic
             ),
         'Wine Enthusiast Score',
@@ -73,8 +73,8 @@ app.layout = dbc.Container([
         'Year',
             dcc.RangeSlider(
                 id = 'year_slider',
-                min=1990, max=2017, value=[1990, 2017],
-                marks={1990: '1990',1995: '1995', 2000: '2000', 2005: '2005', 2010: '2010', 2015: '2015', 2017: '2017'}
+                min=1994, max=2017, value=[1994, 2017],
+                marks={1994: '1994' ,1998: '1998', 2003: '2003', 2008: '2008', 2013: '2013', 2017: '2017'}
             ),
         ], md=4),
         #add search results
