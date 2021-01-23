@@ -24,12 +24,12 @@ country_ids = pd.read_csv('data/geo/country-ids-revised.csv')
 
 
 #### GENERATING LIST FOR SLIDER TICKS ####
-slider_range_price = np.arange(250, 1501, 250).tolist()
+slider_range_price = np.arange(300, 1501, 300).tolist()
 slider_range_5 = [5]
 slider_range_price = slider_range_5 + slider_range_price
 slider_range_price2 = []
 for digit in slider_range_price:
-    slider_range_price2.append(str(digit))
+    slider_range_price2.append('$' + str(digit))
 slider_range_price_dic = {} 
 slider_range_price_dic = {slider_range_price[i]: slider_range_price2[i] for i in range(len(slider_range_price))}
 #### END ####
@@ -110,7 +110,7 @@ app.layout = dbc.Container([
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [80, 100]):
+def plot_map(price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
     wine = wine_df
     # filter by price
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
@@ -145,7 +145,7 @@ def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_scatter(country = None, price_range = [4, 3300], year_range = [1900, 2017], points_range = [80, 100]):
+def plot_scatter(country = None, price_range = [4, 1500], year_range = [1900, 2017], points_range = [80, 100]):
     
     wine = wine_df
 
@@ -173,7 +173,7 @@ def plot_scatter(country = None, price_range = [4, 3300], year_range = [1900, 20
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_altair(country = None, price_range = [4, 3300], year_range = [1900, 2017], points_range = [80, 100]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
+def plot_altair(country = None, price_range = [4, 1500], year_range = [1900, 2017], points_range = [80, 100]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
     
     wine = wine_df
  
@@ -197,7 +197,7 @@ def plot_altair(country = None, price_range = [4, 3300], year_range = [1900, 201
         color='country:N', 
         tooltip=['mean(points)', 'mean(price)', 'country']).interactive()
 
-    chart = (chart_2 | chart_3)
+    chart = alt.vconcat(chart_2, chart_3)
     
     return chart.to_html()
 
