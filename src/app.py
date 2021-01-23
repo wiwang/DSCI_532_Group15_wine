@@ -94,13 +94,13 @@ app.layout = dbc.Container([
                 #srcDoc=plot_map(),
                 style={'border-width': '0', 'width': '100%', 'height': '400px'}
             )
-        ], md=4),
+        ], md=6),
         #add statistic results
         dbc.Col([
             html.Iframe(
                 id = 'plot_altair',
                 style={'border-width': '0', 'width': '100%', 'height': '400px'}),           
-        ], md=8)
+        ])
     ])
 ])
 
@@ -110,7 +110,7 @@ app.layout = dbc.Container([
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [80, 90]):
+def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [80, 100]):
     wine = wine_df
     # filter by price
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
@@ -133,7 +133,10 @@ def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [
                     opacity=alt.condition(map_click, alt.value(1), alt.value(0.2)),
                     tooltip = ['country:N','count:Q'])
             .add_selection(map_click)
-            .project('equalEarth', scale=90))
+            .project('equalEarth', scale=90)
+            .properties(width=420,height=280)
+            .configure_legend(orient = 'bottom')
+            )
     return chart.to_html()
 
 @app.callback(
@@ -142,7 +145,7 @@ def plot_map(price_range = [4,3300], year_range = [1900, 2017], points_range = [
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_scatter(country = None, price_range = [80, 90], year_range = [1900, 2017], points_range = [80, 90]):
+def plot_scatter(country = None, price_range = [4, 3300], year_range = [1900, 2017], points_range = [80, 100]):
     
     wine = wine_df
 
@@ -152,16 +155,15 @@ def plot_scatter(country = None, price_range = [80, 90], year_range = [1900, 201
     
     if country:
         wine = wine[wine['country'].isin(country)]
-    else:
-        wine = wine
 
     chart_1 = alt.Chart(wine, title='Rating by Price').mark_point().encode(
         x=alt.X('price', title="Price", scale=alt.Scale(zero=False)),
         y=alt.Y('points', title="Score", scale=alt.Scale(zero=False)),
         color='country',
         tooltip=['title','points', 'price','variety']).interactive()
+        
 
-    chart = chart_1
+    chart = chart_1.properties(width=380,height=280)
 
     return chart.to_html()
 
@@ -171,7 +173,7 @@ def plot_scatter(country = None, price_range = [80, 90], year_range = [1900, 201
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_altair(country = None, price_range = [80, 90], year_range = [1900, 2017], points_range = [80, 90]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
+def plot_altair(country = None, price_range = [4, 3300], year_range = [1900, 2017], points_range = [80, 100]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
     
     wine = wine_df
  
@@ -181,8 +183,7 @@ def plot_altair(country = None, price_range = [80, 90], year_range = [1900, 2017
 
     if country:
         wine = wine[wine['country'].isin(country)]
-    else:
-        wine = wine
+
 
     chart_2 = alt.Chart(wine.nlargest(15, 'points'), title="Average Rating of Top 15 Best Rated Wine").mark_bar().encode(
         x=alt.X('mean(points)', title="Rating Score"),
