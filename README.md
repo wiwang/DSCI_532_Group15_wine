@@ -1,4 +1,5 @@
-# *Wine Valley* Database Visualization Dashboard
+# Wine Review Data Visualization Team Project
+Deployed dashboard in herokuapp: https://winevalley.herokuapp.com/
 
 ## Welcome!
 
