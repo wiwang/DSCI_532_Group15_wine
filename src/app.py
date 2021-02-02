@@ -19,6 +19,9 @@ wine_df = wine_df.sample(n=10000)
 countries = wine_df["country"].dropna().unique()
 country_list = list(countries)
 
+varieties = wine_df["variety"].dropna().unique()
+variety_list = list(varieties)
+
 country_ids = pd.read_csv('data/geo/country-ids-revised.csv') 
 
 
@@ -41,7 +44,19 @@ table_cols = ["variety", "country", "price", "points"]
 # Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = dbc.Container([
-    html.H1('Wine Valley'),
+
+
+    html.H1('Wine Valley',
+                    style={
+                        'backgroundColor': '#ff0038',
+                        'padding': 10,
+                        'color': 'white',
+                        'margin-top': 10,
+                        'margin-bottom': 10,
+                        'text-align': 'center',
+                        'font-size': '30px',
+                        'border-radius': 3}),
+
 
     #The first row
     dbc.Row([
@@ -54,13 +69,12 @@ app.layout = dbc.Container([
                 value=['US'],
                 multi=True
             ),
-        # 'Variety',
-        #     dcc.Dropdown(
-        #         id='variety_widget',
-        #         options=[{'label': i, 'value': i} for i in wine_df["variety"].dropna().unique()],
-        #         value='SF',
-        #         multi=True
-        #     ),
+        'Variety',
+            dcc.Dropdown(
+                id='variety_widget',
+                options=[{'label': variety, 'value': variety} for variety in variety_list],
+                multi=True
+            ),
         'Price',
             dcc.RangeSlider(
                 id = "price_slider",
@@ -234,10 +248,12 @@ def plot_altair(country = None, price_range = [4, 1500], year_range = [1900, 201
 @app.callback(
     Output('search-table', 'data'),
     [Input('country_widget', 'value')],
+    [Input('variety_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def update_table(country = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
+    
+def update_table(country = None, variety = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
     wine = wine_df
     # filter by price
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
@@ -247,9 +263,9 @@ def update_table(country = None, price_range = [4,1500], year_range = [1900, 201
     if country:
         wine = wine[wine['country'].isin(country)]
     
-    # return {
-    #     'data': wine.to_dict('records')
-    # }
+    if variety:
+        wine = wine[wine['variety'].isin(variety)]
+    
     return wine.to_dict('records')
 
 
