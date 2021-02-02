@@ -2,6 +2,7 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
+import dash_table
 from dash.dependencies import Input, Output
 import altair as alt
 import pandas as pd
@@ -33,6 +34,8 @@ for digit in slider_range_price:
 slider_range_price_dic = {} 
 slider_range_price_dic = {slider_range_price[i]: slider_range_price2[i] for i in range(len(slider_range_price))}
 #### END ####
+
+table_cols = ["variety", "country", "price", "points"]
 
 
 # Setup app and layout/frontend
@@ -82,7 +85,32 @@ app.layout = dbc.Container([
             html.Iframe(
                 id = 'scatter',
                 style={'border-width': '0', 'width': '100%', 'height': '400px'})
-        ])
+        ]),
+        
+        dbc.Col([
+            dash_table.DataTable(
+                id = "search-table",
+                columns=[
+                    {"name": i, "id": i, "deletable": False, "selectable": False} for i in table_cols
+                ],
+                data = wine_df.to_dict('records'),
+                editable=False,
+                filter_action="native",
+                sort_action="native",
+                sort_mode="multi",
+                column_selectable=False,
+                row_selectable="single",
+                row_deletable=False,
+                selected_columns=[],
+                selected_rows=[],
+                page_action="native",
+                page_current= 0,
+                page_size= 10,
+            ),
+            html.Div(id='datatable-interactivity-container')
+        ], md=2)
+
+
     ]),
 
     #The second row
@@ -102,6 +130,7 @@ app.layout = dbc.Container([
                 style={'border-width': '0', 'width': '100%', 'height': '400px'}),           
         ])
     ])
+
 ])
 
 # Set up callbacks/backend
@@ -200,6 +229,29 @@ def plot_altair(country = None, price_range = [4, 1500], year_range = [1900, 201
     chart = alt.vconcat(chart_2, chart_3)
     
     return chart.to_html()
+
+
+@app.callback(
+    Output('search-table', 'data'),
+    [Input('country_widget', 'value')],
+    Input('price_slider', 'value'),
+    Input('year_slider', 'value'),
+    Input('score_slider', 'value'))
+def update_table(country = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
+    wine = wine_df
+    # filter by price
+    wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
+                (wine['year'] >= year_range[0]) & (wine_df['price'] <= year_range[1]) &
+                (wine['points'] >= points_range[0]) & (wine_df['price'] <= points_range[1])]
+
+    if country:
+        wine = wine[wine['country'].isin(country)]
+    
+    # return {
+    #     'data': wine.to_dict('records')
+    # }
+    return wine.to_dict('records')
+
 
 
 
