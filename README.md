@@ -3,10 +3,10 @@ Deployed dashboard in herokuapp: https://winevalley.herokuapp.com/
 
 ## Welcome!
 
--   [What is *Wine Valley*?](#what-wine-valley-is-all-about)
--   [How can you help?](#helping-us-out)
--   [Get in touch](#contact-us)
--   [Initial Proposal](#initial-proposal)
+* [What is *Wine Valley*?](#what-wine-valley-is-all-about)
+* [How can you help?](#helping-us-out)
+* [Get in touch](#contact-us)
+* [Initial Proposal](#initial-proposal)
 
 ## What Wine Valley is All About {#what-wine-valley-is-all-about}
 
