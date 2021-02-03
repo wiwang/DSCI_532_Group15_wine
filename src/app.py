@@ -70,7 +70,7 @@ app.layout = dbc.Container([
 
     html.H1('Wine Valley',
                     style={
-                        'backgroundColor': '#ff0038',
+                        'backgroundColor': '#e3242b',
                         'padding': 10,
                         'color': 'white',
                         'margin-top': 10,
@@ -141,7 +141,14 @@ app.layout = dbc.Container([
                     'maxWidth': '80px',
                     'minWidth': '5px',
                 },
-                style_cell={'textAlign': 'left'}
+                style_cell={'textAlign': 'left'},
+                style_header={
+                    'backgroundColor': 'rgb(230, 230, 230)',
+                    'fontWeight': 'bold'},
+                style_data_conditional=[{
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': '#ffeded'}],
+
             ),
             html.Div(id='datatable-interactivity-container')
         ], md=5),
@@ -165,22 +172,28 @@ app.layout = dbc.Container([
                     {"name": i, "id": i, "deletable": False, "selectable": False} for i in results_table_cols
                 ],
                 data = results_table_temp.to_dict('records'),
+                style_header={
+                    'backgroundColor': 'rgb(230, 230, 230)',
+                    'fontWeight': 'bold'}
             ),
             html.Div(id='resultstable-interactivity-container')
         ], md=3)
-
+       
     ]),
 
     #The second row
     dbc.Row([
         #add geometry map
         dbc.Col([
-            html.Iframe(
-                id ='map',
-                #srcDoc=plot_map(),
-                style={'border-width': '0', 'width': '100%', 'height': '400px'}
-            )
-        ], md=6),
+            dbc.Card([
+                dbc.CardHeader('Wine Producing Map'),
+                dbc.CardBody(
+                    html.Iframe(
+                        id ='map',
+                        #srcDoc=plot_map(),
+                        style={'border-width': '0', 'width': '100%', 'height': '400px'}
+                    )
+        )])]),
         #add statistic results
 
         dbc.Col([
@@ -201,7 +214,12 @@ app.layout = dbc.Container([
             ])
         ], md=6)
 
-    ])
+    ]),
+
+    html.Hr(),
+    html.P(f'''
+    This dashboard was made by Lara Habashy, Huanhuan Li, Matthew Pin, Zhiyong Wang. The data is from https://www.kaggle.com/zynicide/wine-reviews. 
+    ''')
 ], style={'max-width': '75%'})
 
 # Set up callbacks/backend
@@ -232,15 +250,17 @@ def plot_map(variety = None, price_range = [4,1500], year_range = [1900, 2017], 
     world_map = alt.topo_feature(data.world_110m.url, 'countries')
 
     map_click = alt.selection_multi()
-    chart = (alt.Chart(world_map, title='Wine Producing Map').mark_geoshape().transform_lookup(
+    chart = (alt.Chart(world_map)
+            .mark_geoshape(stroke='black', strokeWidth=0.5)
+            .transform_lookup(
             lookup = 'id',
             from_ = alt.LookupData(wine_countryid, 'id', ['country','count']))
-            .encode(color = 'count:Q',
+            .encode(color = alt.Color('count:Q', scale = alt.Scale(scheme = 'goldred')),
                     opacity=alt.condition(map_click, alt.value(1), alt.value(0.2)),
                     tooltip = ['country:N','count:Q'])
             .add_selection(map_click)
             .project('equalEarth', scale=90)
-            .properties(width=420,height=280)
+            .properties(width=500,height=300)
             .configure_legend(orient = 'bottom')
             )
     return chart.to_html()
