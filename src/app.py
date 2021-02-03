@@ -2,10 +2,12 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
+import dash_table
 from dash.dependencies import Input, Output
 import altair as alt
 import pandas as pd
 import numpy as np
+import re
 from vega_datasets import data
 alt.data_transformers.disable_max_rows()
 
@@ -15,8 +17,25 @@ alt.data_transformers.disable_max_rows()
 wine_df = pd.read_csv("data/processed/wine.csv")
 
 wine_df = wine_df.sample(n=10000)
-countries = wine_df["country"].dropna().unique()
+
+wine_df = wine_df[wine_df['country'].notna()]
+wine_df = wine_df[wine_df['year'].notna()]
+
+def shorten_title(text):
+    #match = re.search(r'\d{4}', text) 
+    shorter_name = re.split(r'\s+(?=\d)|(?<=\d)\s+', text)[0]
+    if shorter_name:
+        return shorter_name
+    else:
+        return text
+
+wine_df['title_short'] = wine_df['title'].apply(shorten_title)
+
+countries = wine_df["country"].dropna().unique() # 
 country_list = list(countries)
+
+varieties = wine_df["variety"].dropna().unique()
+variety_list = list(varieties)
 
 country_ids = pd.read_csv('data/geo/country-ids-revised.csv') 
 
@@ -34,11 +53,33 @@ slider_range_price_dic = {}
 slider_range_price_dic = {slider_range_price[i]: slider_range_price2[i] for i in range(len(slider_range_price))}
 #### END ####
 
+table_cols = ["winery", "variety", "country", "price", "points", "year"]
+results_table_cols = ["Detailed Information"]
+
+results_table_temp = pd.DataFrame(np.array([
+        ["No wine selected. Click on a row in the table to the left to see detailed information about a selection."],
+                                ]),
+                    columns=['Detailed Information'])
+
+
+
 
 # Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = dbc.Container([
-    html.H1('Wine Valley'),
+
+    html.H1('Wine Valley',
+                    style={
+                        'backgroundColor': '#ff0038',
+                        'padding': 10,
+                        'color': 'white',
+                        'margin-top': 10,
+                        'margin-bottom': 10,
+                        'text-align': 'center',
+                        'font-size': '30px',
+                        'border-radius': 3,
+                        'font-family': 'cursive'}),
+
 
     #The first row
     dbc.Row([
@@ -51,20 +92,19 @@ app.layout = dbc.Container([
                 value=['US'],
                 multi=True
             ),
-        # 'Variety',
-        #     dcc.Dropdown(
-        #         id='variety_widget',
-        #         options=[{'label': i, 'value': i} for i in wine_df["variety"].dropna().unique()],
-        #         value='SF',
-        #         multi=True
-        #     ),
-        'Price',
+        'Variety',
+            dcc.Dropdown(
+                id='variety_widget',
+                options=[{'label': variety, 'value': variety} for variety in variety_list],
+                multi=True
+            ),
+        'Price (USD)',
             dcc.RangeSlider(
                 id = "price_slider",
                 min=4, max=1500, value=[4, 1500],
                 marks=slider_range_price_dic
             ),
-        'Wine Enthusiast Score',
+        'Wine Enthusiast Score (80-100 points)',
             dcc.RangeSlider(
                 id = 'score_slider',
                 min=80, max=100, value=[80, 100],
@@ -77,12 +117,58 @@ app.layout = dbc.Container([
                 marks={1994: '1994' ,1998: '1998', 2003: '2003', 2008: '2008', 2013: '2013', 2017: '2017'}
             ),
         ], md=4),
-        #add search results
+        
         dbc.Col([
-            html.Iframe(
-                id = 'scatter',
-                style={'border-width': '0', 'width': '100%', 'height': '400px'})
-        ])
+            dash_table.DataTable(
+                id = "search-table",
+                columns=[
+                    {"name": i, "id": i, "deletable": False, "selectable": False} for i in table_cols
+                ],
+                data = wine_df.to_dict('records'),
+                editable=False,
+                sort_action="native",
+                sort_mode="multi",
+                column_selectable=False,
+                row_selectable="single",
+                row_deletable=False,
+                selected_columns=[],
+                selected_rows=[],
+                page_action="native",
+                page_current= 0,
+                page_size= 10,
+                style_data={
+                    'width': '20px',
+                    'maxWidth': '80px',
+                    'minWidth': '5px',
+                },
+                style_cell={'textAlign': 'left'}
+            ),
+            html.Div(id='datatable-interactivity-container')
+        ], md=5),
+
+        dbc.Col([
+            dash_table.DataTable(
+                id = "results-table",
+                style_data={
+                    'width': '20px',
+                    'maxWidth': '80px',
+                    'minWidth': '5px',
+                    'whiteSpace': 'normal',
+                    'height': 'auto',
+                },
+                style_cell_conditional=[
+                    {'if': {'column_id': ' '},
+                    'width': '1%'}
+                ],
+                style_cell={'textAlign': 'left'},
+                columns=[
+                    {"name": i, "id": i, "deletable": False, "selectable": False} for i in results_table_cols
+                ],
+                data = results_table_temp.to_dict('records'),
+            ),
+            html.Div(id='resultstable-interactivity-container')
+        ], md=3)
+
     ]),
 
     #The second row
@@ -96,22 +182,42 @@ app.layout = dbc.Container([
             )
         ], md=6),
         #add statistic results
+
         dbc.Col([
-            html.Iframe(
-                id = 'plot_altair',
-                style={'border-width': '0', 'width': '100%', 'height': '400px'}),           
-        ])
+            dcc.Tabs([
+                dcc.Tab(label='Scatterplot', children=[
+                    html.Iframe(
+                        id = 'plot_altair',
+                        style={'border-width': '0', 'width': '100%', 'height': '400px'})
+                ]),
+                dcc.Tab(label='Top Rated', children=[
+
+                    html.Iframe(
+                        id = 'scatter',
+                        style={'border-width': '0', 'width': '100%', 'height': '400px'})
+
+                ])
+
+            ])
+        ], md=6)
+
     ])
-])
+], style={'max-width': '75%'})
 
 # Set up callbacks/backend
 @app.callback(
     Output('map', 'srcDoc'),
+    [Input('variety_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_map(price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
+def plot_map(variety = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
+
     wine = wine_df
+
+    if variety:
+        wine = wine[wine['variety'].isin(variety)]
+
     # filter by price
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
     (wine['year'] >= year_range[0]) & (wine_df['price'] <= year_range[1]) &
@@ -142,25 +248,30 @@ def plot_map(price_range = [4,1500], year_range = [1900, 2017], points_range = [
 @app.callback(
     Output('plot_altair', 'srcDoc'),
     [Input('country_widget', 'value')],
+    [Input('variety_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_scatter(country = None, price_range = [4, 1500], year_range = [1900, 2017], points_range = [80, 100]):
+def plot_scatter(country = None, variety = None, price_range = [4, 1500], year_range = [1900, 2017], points_range = [80, 100]):
     
     wine = wine_df
 
     # filter by price and year
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
-                (wine['year'] >= year_range[0]) & (wine_df['price'] <= year_range[1]) ]
+                (wine['year'] >= year_range[0]) & (wine_df['year'] <= year_range[1]) ]
     
     if country:
         wine = wine[wine['country'].isin(country)]
+    
+    if variety:
+        wine = wine[wine['variety'].isin(variety)]
 
     chart_1 = alt.Chart(wine, title='Rating by Price').mark_point().encode(
         x=alt.X('price', title="Price", scale=alt.Scale(zero=False)),
         y=alt.Y('points', title="Score", scale=alt.Scale(zero=False)),
-        color='country',
+        color= alt.Color('country', legend=alt.Legend(symbolLimit=18)),
         tooltip=['title','points', 'price','variety']).interactive()
+        
         
 
     chart = chart_1.properties(width=380,height=280)
@@ -170,36 +281,106 @@ def plot_scatter(country = None, price_range = [4, 1500], year_range = [1900, 20
 @app.callback(
     Output('scatter', 'srcDoc'),
     [Input('country_widget', 'value')],
+    [Input('variety_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_altair(country = None, price_range = [4, 1500], year_range = [1900, 2017], points_range = [80, 100]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
+def plot_altair(country = None, variety = None, price_range = [4, 1500], year_range = [1900, 2017], points_range = [80, 100]): # xrange is a list that stores min (xrange[0]) and max (xrange[1])
     
     wine = wine_df
  
     # filter by price and year
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
-                (wine['year'] >= year_range[0]) & (wine_df['price'] <= year_range[1]) ]
+                (wine['year'] >= year_range[0]) & (wine_df['year'] <= year_range[1]) ]
 
     if country:
         wine = wine[wine['country'].isin(country)]
+    
+    if variety:
+        wine = wine[wine['variety'].isin(variety)]
 
 
-    chart_2 = alt.Chart(wine.nlargest(15, 'points'), title="Average Rating of Top 15 Best Rated Wine").mark_bar().encode(
+    chart_2 = alt.Chart(wine.nlargest(15, 'points'), title="Average Rating of Top Rated Wine").mark_bar().encode(
         x=alt.X('mean(points)', title="Rating Score"),
         y=alt.Y('variety', title="Variety", scale=alt.Scale(zero=False), sort='-x'),
         color='country:N',
-        tooltip=['mean(points)', 'mean(price)', 'country']).interactive()
+        tooltip=['mean(points)', 'mean(price)', 'country']).properties(
+            width=250,
+            height=120
+        ).interactive()
     
-    chart_3 = alt.Chart(wine.nlargest(15, 'points'), title="Average Price of Top 15 Best Rated Wine").mark_bar().encode(
+    chart_3 = alt.Chart(wine.nlargest(15, 'points'), title="Average Price of Top Rated Wine").mark_bar().encode(
         x=alt.X('mean(price)', title="Price", sort='-y', stack=None),
         y=alt.Y('variety', title=" ", scale=alt.Scale(zero=False), sort='-x'),
         color='country:N', 
-        tooltip=['mean(points)', 'mean(price)', 'country']).interactive()
+        tooltip=['mean(points)', 'mean(price)', 'country']).properties(
+            width=250,
+            height=120
+        ).interactive()
 
     chart = alt.vconcat(chart_2, chart_3)
     
     return chart.to_html()
+
+
+@app.callback(
+    Output('search-table', 'data'),
+    [Input('country_widget', 'value')],
+    [Input('variety_widget', 'value')],
+    Input('price_slider', 'value'),
+    Input('year_slider', 'value'),
+    Input('score_slider', 'value'))
+def update_table(country = None, variety = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
+    wine = wine_df
+    # filter by price
+    wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
+                (wine['year'] >= year_range[0]) & (wine_df['year'] <= year_range[1]) &
+                (wine['points'] >= points_range[0]) & (wine_df['points'] <= points_range[1])]
+
+    if country:
+        wine = wine[wine['country'].isin(country)]
+    
+    if variety:
+        wine = wine[wine['variety'].isin(variety)]
+    
+    return wine.to_dict('records')
+
+
+@app.callback(
+    Output('results-table', 'data'),
+    Input('search-table', "derived_virtual_data"),
+    Input('search-table', "selected_rows"),
+    Input('search-table', "derived_virtual_selected_rows"))
+def update_results(rows, selected_rows, derived_virtual_selected_rows):
+    if derived_virtual_selected_rows:
+        row = int(derived_virtual_selected_rows[0])
+
+        row_name = pd.DataFrame(rows).loc[row]['title']
+        row_winery = pd.DataFrame(rows).loc[row]['winery']
+        row_province = "Province: " + pd.DataFrame(rows).loc[row]['province']
+        row_taster = pd.DataFrame(rows).loc[row]['taster_name']
+        row_review = "Review: " + pd.DataFrame(rows).loc[row]['description']
+
+        if pd.DataFrame(rows).loc[row]['designation']:
+            row_designation = "Designation: " + pd.DataFrame(rows).loc[row]['designation']
+        else:
+            row_designation = "No Designation"
+        
+
+        results_table = pd.DataFrame(np.array([[row_name],
+                                [row_province],
+                                [row_designation],
+                                [row_review]
+                                ]),
+                    columns=['Detailed Information'])
+
+    else: results_table = pd.DataFrame(np.array([
+        ["", "No wine selected. Click on a row in the table to the left to see detailed information about a selection."],
+                                ]),
+                    columns=[' ', 'Detailed Information'])
+
+    return results_table.to_dict('records')
+
 
 
 
