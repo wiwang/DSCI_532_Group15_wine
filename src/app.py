@@ -286,12 +286,11 @@ def plot_scatter(country = None, variety = None, price_range = [4, 1500], year_r
     if variety:
         wine = wine[wine['variety'].isin(variety)]
 
-    chart_1 = alt.Chart(wine, title='Rating by Price').mark_point().encode(
+    chart_1 = alt.Chart(wine, title='Wine Rating by Price').mark_point().encode(
         x=alt.X('price', title="Price", scale=alt.Scale(zero=False)),
         y=alt.Y('points', title="Score", scale=alt.Scale(zero=False)),
-        color= alt.Color('country', legend=alt.Legend(symbolLimit=18)),
+        color= alt.Color('country', scale=alt.Scale(scheme='darkred'), legend=alt.Legend(symbolLimit=18, title="Country")),
         tooltip=['title','points', 'price','variety']).interactive()
-        
         
 
     chart = chart_1.properties(width=380,height=280)
@@ -319,21 +318,33 @@ def plot_altair(country = None, variety = None, price_range = [4, 1500], year_ra
     if variety:
         wine = wine[wine['variety'].isin(variety)]
 
-
-    chart_2 = alt.Chart(wine.nlargest(15, 'points'), title="Average Rating of Top Rated Wine").mark_bar().encode(
-        x=alt.X('mean(points)', title="Rating Score"),
-        y=alt.Y('variety', title="Variety", scale=alt.Scale(zero=False), sort='-x'),
-        color='country:N',
-        tooltip=['mean(points)', 'mean(price)', 'country']).properties(
+    chart_2 = alt.Chart(wine.nlargest(35, 'points'), title="Average Rating of Top Rated Wine").mark_point(filled=True, size=40, opacity=0.9).encode(
+        x=alt.X('mean(points)', title="Rating Score", scale=alt.Scale(zero=False), stack=None),
+        y=alt.Y('variety:N', title="Variety", scale=alt.Scale(zero=False), sort='-x', stack=None),
+        color=alt.Color('country:N', scale=alt.Scale(scheme='goldred')), 
+        tooltip=alt.Tooltip(['mean(points)', 'mean(price)'], format=",.0f")).properties(
             width=250,
             height=120
         ).interactive()
+    #alt.layer(chart_2.mark_line(color='blue').encode(y='mean'))
+    chart_21 = alt.Chart(wine.nlargest(35, 'points'), title="Average Rating of Top Rated Wine").mark_line(opacity=0.9).encode(
+        x=alt.X('points:Q', title="Rating Score", scale=alt.Scale(zero=False), stack=None),
+        y=alt.Y('variety:N', title="Variety", scale=alt.Scale(zero=False), sort='-x', stack=None),
+        color=alt.Color('variety:N', scale=alt.Scale(scheme='darkred'))).properties(
+            width=250,
+            height=120
+        )#.interactive()
+
+    #chart_2 = chart_21 + chart_21.mark_line()
     
-    chart_3 = alt.Chart(wine.nlargest(15, 'points'), title="Average Price of Top Rated Wine").mark_bar().encode(
+    chart_3 = alt.Chart(wine.nlargest(35, 'points'), title="Average Price of Top Rated Wine").mark_point(filled=True, size=40, opacity=0.9).encode(
         x=alt.X('mean(price)', title="Price", sort='-y', stack=None),
         y=alt.Y('variety', title=" ", scale=alt.Scale(zero=False), sort='-x'),
-        color='country:N', 
-        tooltip=['mean(points)', 'mean(price)', 'country']).properties(
+        color=alt.Color('country:N', scale=alt.Scale(scheme='goldred'), legend=alt.Legend(title="Country")), 
+        tooltip=alt.Tooltip(['mean(price)', 'mean(points)'], format=",.0f")
+        #tooltip=['country', alt.Tooltip(['mean(price)', 'mean(points)'], format=",.0f")]
+        #tooltip=[ alt.Tooltip(['country:N']), alt.Tooltip(['mean(price)', 'mean(points)'], format=",.0f")]
+        ).properties(
             width=250,
             height=120
         ).interactive()
