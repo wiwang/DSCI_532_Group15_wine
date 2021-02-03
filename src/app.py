@@ -251,7 +251,7 @@ def plot_map(variety = None, price_range = [4,1500], year_range = [1900, 2017], 
 
     map_click = alt.selection_multi()
     chart = (alt.Chart(world_map)
-            .mark_geoshape()
+            .mark_geoshape(stroke='black', strokeWidth=0.5)
             .transform_lookup(
             lookup = 'id',
             from_ = alt.LookupData(wine_countryid, 'id', ['country','count']))
