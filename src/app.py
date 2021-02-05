@@ -74,10 +74,10 @@ app.layout = dbc.Container([
                         'backgroundColor': '#e3242b',
                         'padding': 10,
                         'color': 'white',
-                        'margin-top': 10,
-                        'margin-bottom': 10,
+                        'margin-top': 20,
+                        'margin-bottom': 30,
                         'text-align': 'center',
-                        'font-size': '30px',
+                        'font-size': '48px',
                         'border-radius': 3,
                         'font-family': 'cursive'}),
 
@@ -417,4 +417,4 @@ def update_results(rows, selected_rows, derived_virtual_selected_rows):
 
 
 if __name__ == '__main__':
-   app.run_server(debug=True)
+   app.run_server()
