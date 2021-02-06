@@ -65,6 +65,9 @@ results_table_temp = pd.DataFrame(np.array([
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
+# Setup app and layout/frontend
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 app.layout = dbc.Container([
 
     html.H1('Wine Valley',
