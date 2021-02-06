@@ -1,0 +1,72 @@
+.Select-control, .Select div, .is-open>.Select-control{
+  color: #b11226;
+  border-color: grey;
+  background-color: white;
+}
+
+.Select--multi .Select-value {
+  background-color: #b11226;
+  border-color: grey;
+  color: red;
+}
+
+.Select-menu-outer {
+  background-color: #b11226;
+}
+
+.Select-control {
+  background-color: white;
+  border-radius: 4px;
+  border: 0.5px solid #b11226;
+  color: #b11226;
+}
+
+div.Select–single>.Select-control .Select-value,
+div.Select-placeholder {
+color: white;
+background: #b11226;
+/border: 0.5px solid #b11226;/
+border-radius: 4px;
+}
+
+div.Select.has-value.Select–single > .Select-control .Select-value .Select-value-label,
+div.Select.has-value.is-pseudo-focused.Select–single>.Select-control .Select-value .Select-value-label {
+color: #b11226;
+}
+
+.rc-slider-track {
+  background-color: #b11226;
+}
+
+.rc-slider-dot-active {  
+  border-color: #b11226;
+  border: solid 2px #b11226;
+}
+
+.rc-slider-handle {
+  background-color: #b11226;
+  border-color: #b11226;
+}
+
+.rc.slider-handle:hover {
+  border-color: #b11226;
+}
+
+.rc.slider-handle-active:active {
+  border-color: #b11226;
+}
+
+.dash-spreadsheet-container .dash-spreadsheet-inner table {
+    border-collapse: collapse;
+    font-family: monospace;
+    --accent: hotpink;
+    --border: lightgrey;
+    --text-color: #3c3c3c;
+    --hover: #fdfdfd;
+    --background-color-ellipses: #fdfdfd;
+    --faded-text: #fafafa;
+    --faded-text-header: #b4b4b4;
+    --selected-background: rgba(255, 65, 54, 0.2);
+    --faded-dropdown: #f0f0f0;
+    --muted: #c8c8c8;
+}
