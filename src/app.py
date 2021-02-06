@@ -62,11 +62,8 @@ results_table_temp = pd.DataFrame(np.array([
                     columns=['Detailed Information'])
 
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-
 # Setup app and layout/frontend
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 app.layout = dbc.Container([
 
