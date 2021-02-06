@@ -12,7 +12,7 @@ Deployed dashboard in herokuapp: https://winevalley.herokuapp.com/
 
 Have you been trying to track down the perfect wine for the perfect occasion? Look no further! Our app *Wine Valley* will help you do just that! Apply various filters to search through a database of thousands of different wines to find exactly what you're looking for! With *Wine Valley* you can filter by country, price, Wine Enthusiast score and year. Track down the perfect beverage for any occasion! Try it [here](https://winevalley.herokuapp.com/)!
 
-![](image/app_demo_milestone_2.gif)
+![](image/app_demo_milestone_4.gif)
 
 By clicking on the different sliders and dropdown filter the data to find whatever kind of wine you're interested in! See our map and charts that are updated in real time according to your selections!
 
@@ -35,6 +35,7 @@ First install all of the required packages to be able to run our dashboard.
 | dash\_bootstrap\_components | pip install dash-bootstrap-components |
 | vega\_datasets              | pip install altair vega\_datasets     |
 | numpy                       | pip install numpy                     |
+| re                          | pip install re                        |
 
 Then simply clone our repo and run app.py in your terminal. A local version of the app will run in your default local host ip and port which can then be opened in any browser. Further instructions are available [here](https://dash.plotly.com/layout) if you run into any issues.
 
