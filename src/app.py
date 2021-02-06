@@ -53,7 +53,7 @@ slider_range_price_dic = {}
 slider_range_price_dic = {slider_range_price[i]: slider_range_price2[i] for i in range(len(slider_range_price))}
 #### END ####
 
-table_cols = ["winery", "variety", "country", "price", "points", "year"]
+table_cols = ["variety", "winery", "country", "price", "points", "year"]
 results_table_cols = ["Detailed Information"]
 
 results_table_temp = pd.DataFrame(np.array([
@@ -62,15 +62,14 @@ results_table_temp = pd.DataFrame(np.array([
                     columns=['Detailed Information'])
 
 
-
-
-# Setup app and layout/frontend
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+
 app.layout = dbc.Container([
 
     html.H1('Wine Valley',
                     style={
-                        'backgroundColor': '#e3242b',
+                        'backgroundColor': '#c50017',
                         'padding': 10,
                         'color': 'white',
                         'margin-top': 20,
@@ -87,31 +86,35 @@ app.layout = dbc.Container([
         dbc.Col([
             'Country',
             dcc.Dropdown(
+                className='country_dropdown_class',
                 id='country_widget',
                 options=[{'label': country, 'value': country} for country in country_list],
-                value=['US'],
                 multi=True
             ),
         'Variety',
             dcc.Dropdown(
+                className='variety_dropdown_class',
                 id='variety_widget',
                 options=[{'label': variety, 'value': variety} for variety in variety_list],
                 multi=True
             ),
         'Price (USD)',
             dcc.RangeSlider(
+                className='price_slider_class',
                 id = "price_slider",
                 min=4, max=1500, value=[4, 1500],
                 marks=slider_range_price_dic
             ),
         'Wine Enthusiast Score (80-100 points)',
             dcc.RangeSlider(
+                className='score_slider_class',
                 id = 'score_slider',
                 min=80, max=100, value=[80, 100],
                 marks={80: '80', 85: '85', 90: '90', 95: '95', 100: '100'}
             ),
-        'Year',
+        'Vintage',
             dcc.RangeSlider(
+                className='year_slider_class',
                 id = 'year_slider',
                 min=1994, max=2017, value=[1994, 2017],
                 marks={1994: '1994' ,1998: '1998', 2003: '2003', 2008: '2008', 2013: '2013', 2017: '2017'}
@@ -131,6 +134,7 @@ app.layout = dbc.Container([
                 column_selectable=False,
                 row_selectable="single",
                 row_deletable=False,
+                filter_action="native",
                 selected_columns=[],
                 selected_rows=[],
                 page_action="native",
@@ -145,10 +149,15 @@ app.layout = dbc.Container([
                 style_header={
                     'backgroundColor': 'rgb(230, 230, 230)',
                     'fontWeight': 'bold'},
-                style_data_conditional=[{
-                    'if': {'row_index': 'odd'},
-                    'backgroundColor': '#ffeded'}],
-
+                style_data_conditional=[
+                    {'if': { "state": "selected"},
+                        "backgroundColor": "inherit !important",
+                        "border": "inherit !important",}
+                    ] + [
+                    {'if': {'row_index': 'odd'},
+                        'backgroundColor': '#ffeded'
+                    }
+                ]
             ),
             html.Div(id='datatable-interactivity-container')
         ], md=5),
@@ -165,7 +174,15 @@ app.layout = dbc.Container([
                 },
                 style_cell_conditional=[
                     {'if': {'column_id': ' '},
-                    'width': '1%'}
+                        'width': '1%'}
+                    ] + [
+                    {'if': { "state": "selected"},
+                        "backgroundColor": "inherit !important",
+                        "border": "inherit !important",}
+                    ] + [
+                    {'if': {'row_index': 'odd'},
+                        'backgroundColor': '#ffeded'
+                    }
                 ],
                 style_cell={'textAlign': 'left'},
                 columns=[
@@ -186,29 +203,27 @@ app.layout = dbc.Container([
         #add geometry map
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader('Wine Producing Map'),
+                dbc.CardHeader('Country Produciton Map'),
                 dbc.CardBody(
                     html.Iframe(
                         id ='map',
                         #srcDoc=plot_map(),
                         style={'border-width': '0', 'width': '100%', 'height': '400px'}
-                    )
+                )
         )])]),
         #add statistic results
 
         dbc.Col([
             dcc.Tabs([
-                dcc.Tab(label='Scatterplot', children=[
+                dcc.Tab(label='Rating vs Price Scatterplot', children=[
                     html.Iframe(
                         id = 'plot_altair',
                         style={'border-width': '0', 'width': '100%', 'height': '400px'})
                 ]),
                 dcc.Tab(label='Top Rated', children=[
-
                     html.Iframe(
                         id = 'scatter',
                         style={'border-width': '0', 'width': '100%', 'height': '400px'})
-
                 ])
 
             ])
@@ -220,18 +235,22 @@ app.layout = dbc.Container([
     html.P(f'''
     This dashboard was made by Lara Habashy, Huanhuan Li, Matthew Pin, Zhiyong Wang. The data is from https://www.kaggle.com/zynicide/wine-reviews. 
     ''')
-], style={'max-width': '75%'})
+], style={'max-width': '80%'})
 
 # Set up callbacks/backend
 @app.callback(
     Output('map', 'srcDoc'),
+    [Input('country_widget', 'value')],
     [Input('variety_widget', 'value')],
     Input('price_slider', 'value'),
     Input('year_slider', 'value'),
     Input('score_slider', 'value'))
-def plot_map(variety = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
+def plot_map(country = None, variety = None, price_range = [4,1500], year_range = [1900, 2017], points_range = [80, 100]):
 
     wine = wine_df
+
+    if country:
+        wine = wine[wine['country'].isin(country)]
 
     if variety:
         wine = wine[wine['variety'].isin(variety)]
@@ -249,8 +268,14 @@ def plot_map(variety = None, price_range = [4,1500], year_range = [1900, 2017], 
     world = data.world_110m()
     world_map = alt.topo_feature(data.world_110m.url, 'countries')
 
+    background = (alt.Chart(world_map)
+        .mark_geoshape(stroke='black', fill = 'lightgrey', strokeWidth=0.25)
+        .project('equalEarth', scale=80)
+        .properties(width=425,height=250)
+    )
+
     map_click = alt.selection_multi()
-    chart = (alt.Chart(world_map)
+    fill = (alt.Chart(world_map)
             .mark_geoshape(stroke='black', strokeWidth=0.5)
             .transform_lookup(
             lookup = 'id',
@@ -259,10 +284,15 @@ def plot_map(variety = None, price_range = [4,1500], year_range = [1900, 2017], 
                     opacity=alt.condition(map_click, alt.value(1), alt.value(0.2)),
                     tooltip = ['country:N','count:Q'])
             .add_selection(map_click)
-            .project('equalEarth', scale=90)
-            .properties(width=500,height=300)
-            .configure_legend(orient = 'bottom')
+            .project('equalEarth', scale=80)
+            .properties(width=425,height=250)
+            #.configure_legend(orient = 'bottom')
             )
+    
+    chart = background + fill
+
+    #chart.configure_legend(orient = 'bottom')
+
     return chart.to_html()
 
 @app.callback(
@@ -367,6 +397,11 @@ def update_table(country = None, variety = None, price_range = [4,1500], year_ra
     wine = wine[(wine['price'] >= price_range[0]) & (wine_df['price'] <= price_range[1]) &
                 (wine['year'] >= year_range[0]) & (wine_df['year'] <= year_range[1]) &
                 (wine['points'] >= points_range[0]) & (wine_df['points'] <= points_range[1])]
+    
+    # def price_format(x):
+    #         return "${:,.4f}".format(x/1)
+    
+    # wine['price'] = wine['price'].apply(price_format)
 
     if country:
         wine = wine[wine['country'].isin(country)]
