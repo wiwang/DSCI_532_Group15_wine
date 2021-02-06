@@ -1,0 +1,9 @@
+# Milestone 4 Reflection
+
+For milestone 4 we decided to move forward with the python version of our app over our R version since we felt that it would be the easier format to work in. This was mainly because we were working with a table that required extensive use of documentation online to get working properly. All of these resources were written in python so following along with them was made much easier this way.
+
+In general, our app has been designed with ease of use in mind, especially given that our target audience is an average consumer. We get repetitive feedback that the filters are easy to use. The filters are based on country, scores, varieties, and prices, which are all important factors to help wine customers to make purchase decisions. Additionally, all information updates in real time and makes use of very easy to interpret charts and visuals (maps/tables). 
+
+An issue that came up when discussing our dashboard with Joel is the interpretation of the Top Rated Wine bar plots in Altair. The issue was avoided is milestone 3 since the plotting package ggplot2 allows for grouped horizontal unstacked bars that made it easy to visually compare how each country’s prices and rates their wine for a given wine variety. An issue that came up in milestone 3 however was removing the duplicate legends, which has been resolved now.
+
+Another issue we ran into was that changing the colour of our dashboard proved quite difficult. Ideally, we would have altered the theme’s default colours to change the default blue to a red to better fit our aesthetic but we wound up using css files to achieve this instead. Unfortunately, because of this there are still some portions of our dashboard that appear light blue (i.e. names of selected countries, the highlighted tab, etc.).

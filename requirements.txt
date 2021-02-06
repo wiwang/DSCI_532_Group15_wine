@@ -6,3 +6,4 @@ dash_bootstrap_components
 vega_datasets
 plotly==4.14.3
 numpy
+re
