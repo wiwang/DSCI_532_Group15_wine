@@ -1,4 +1,4 @@
-# Milestone 2 Reflection
+# Milestone 4 Reflection
 
 For milestone 4 we decided to move forward with the python version of our app over our R version since we felt that it would be the easier format to work in. This was mainly because we were working with a table that required extensive use of documentation online to get working properly. All of these resources were written in python so following along with them was made much easier this way.
 
